@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>인재경영실 Letter — 아카이브</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+      background: #f0f2f5; color: #1e2235; min-height: 100vh;
+    }
+
+    /* ─── 헤더 ─── */
+    .site-header { background: #1e2235; }
+    .header-inner {
+      max-width: 900px; margin: 0 auto;
+      padding: 28px 24px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .logo-area { display: flex; align-items: center; gap: 12px; }
+    .logo-mark { width: 34px; height: 34px; position: relative; flex-shrink: 0; }
+    .logo-mark .c1 {
+      position: absolute; top: 0; left: 0;
+      width: 22px; height: 22px; background: #00A7A7; border-radius: 50%;
+    }
+    .logo-mark .c2 {
+      position: absolute; bottom: 0; right: 0;
+      width: 15px; height: 15px; background: #00A7A7;
+      border-radius: 50%; opacity: 0.65;
+    }
+    .logo-text .org  { font-size: 11px; color: #94a3b8; font-weight: 500; }
+    .logo-text .name { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+    .header-badge {
+      background: #00A7A7; color: #fff; font-size: 11px;
+      font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.3px;
+    }
+
+    /* ─── 검색 바 ─── */
+    .search-bar { background: #fff; border-bottom: 1px solid #e2e8f0; }
+    .search-inner {
+      max-width: 900px; margin: 0 auto; padding: 14px 24px;
+      display: flex; gap: 12px; align-items: center;
+    }
+    .search-inner input {
+      flex: 1; border: 1.5px solid #e2e8f0; border-radius: 9px;
+      padding: 9px 16px; font-size: 14px; outline: none;
+      font-family: inherit; transition: border-color .2s; color: #374151;
+    }
+    .search-inner input:focus { border-color: #00A7A7; }
+    .count-badge { font-size: 13px; color: #64748b; white-space: nowrap; }
+    .count-badge strong { color: #00A7A7; }
+
+    /* ─── 메인 ─── */
+    .main { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+    /* ─── 카드 그리드 ─── */
+    .letters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 22px;
+    }
+
+    /* ─── 카드 ─── */
+    .card {
+      background: #fff; border-radius: 14px;
+      border: 1px solid #e2e8f0; overflow: hidden;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.09); }
+
+    .card-header {
+      background: #1e2235; padding: 16px 22px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .card-no {
+      font-size: 11px; color: #00A7A7; font-weight: 700;
+      letter-spacing: 0.6px; text-transform: uppercase;
+    }
+    .card-date { font-size: 12px; color: #64748b; }
+
+    .card-body { padding: 18px 22px 14px; }
+    .card-title {
+      font-size: 16px; font-weight: 700; color: #1e2235;
+      line-height: 1.45; margin-bottom: 10px;
+    }
+    .card-excerpt {
+      font-size: 13px; color: #64748b; line-height: 1.65;
+      display: -webkit-box; -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    .card-footer { padding: 12px 22px 18px; display: flex; gap: 10px; }
+    .btn-read {
+      background: #00A7A7; color: #fff; border: none;
+      border-radius: 8px; padding: 8px 18px; font-size: 13px;
+      font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: background .15s;
+    }
+    .btn-read:hover { background: #008f8f; }
+    .btn-collapse {
+      background: #f1f5f9; color: #64748b; border: none;
+      border-radius: 8px; padding: 8px 14px; font-size: 13px;
+      cursor: pointer; font-family: inherit; display: none;
+      transition: background .15s;
+    }
+    .btn-collapse:hover { background: #e2e8f0; }
+
+    /* 전문 영역 */
+    .card-full {
+      display: none; border-top: 3px solid #00A7A7;
+      padding: 28px 28px 24px; background: #fff;
+    }
+    .card-full h1 {
+      font-size: 20px; font-weight: 800; color: #1e2235;
+      margin: 28px 0 12px; padding-bottom: 8px;
+      border-bottom: 2px solid #00A7A7;
+    }
+    .card-full h2 { font-size: 17px; font-weight: 700; color: #1e2235; margin: 24px 0 10px; }
+    .card-full h3 {
+      font-size: 13px; font-weight: 700; color: #00A7A7;
+      margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .6px;
+    }
+    .card-full p  { margin: 0 0 16px; line-height: 1.8; color: #374151; font-size: 15px; }
+    .card-full ul { margin: 0 0 16px; padding-left: 22px; }
+    .card-full ol { margin: 0 0 16px; padding-left: 22px; }
+    .card-full li { margin-bottom: 8px; line-height: 1.7; color: #374151; }
+    .card-full hr { border: none; border-top: 2px solid #e5e7eb; margin: 28px 0; }
+    .card-full blockquote {
+      margin: 0 0 16px; padding: 14px 20px;
+      border-left: 4px solid #00A7A7; background: #f9fafb;
+      color: #6b7280; font-style: italic; border-radius: 0 8px 8px 0; line-height: 1.75;
+    }
+    .card-full table { width: 100%; margin-bottom: 16px; }
+    .card-full pre {
+      background: #1e2235; color: #e5e7eb; border-radius: 10px;
+      padding: 18px 22px; margin: 0 0 16px; overflow-x: auto;
+      font-size: 13px; line-height: 1.6; font-family: 'Courier New', monospace;
+    }
+    .card-full img { max-width: 100%; border-radius: 10px; }
+    .card-full code {
+      background: #e6f7f7; color: #00A7A7; padding: 2px 6px;
+      border-radius: 3px; font-size: 88%; font-family: monospace;
+    }
+
+    /* 빈 상태 */
+    .empty-state { text-align: center; padding: 80px 24px; color: #94a3b8; }
+    .empty-state .emoji { font-size: 48px; margin-bottom: 16px; }
+
+    /* 사이트 푸터 */
+    .site-footer { text-align: center; padding: 32px 24px; color: #94a3b8; font-size: 12px; }
+    .site-footer a { color: #00A7A7; text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .letters-grid { grid-template-columns: 1fr; }
+      .header-inner { flex-direction: column; align-items: flex-start; }
+      .card-full { padding: 20px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo-area">
+      <div class="logo-mark"><div class="c1"></div><div class="c2"></div></div>
+      <div class="logo-text">
+        <div class="org">상상인그룹</div>
+        <div class="name">인재경영실 Letter</div>
+      </div>
+    </div>
+    <span class="header-badge">ARCHIVE</span>
+  </div>
+</header>
+
+<!-- 검색 바 -->
+<div class="search-bar">
+  <div class="search-inner">
+    <input type="text" id="searchInput" placeholder="레터 제목 또는 내용으로 검색…" autocomplete="off">
+    <div class="count-badge">총 <strong id="letterCount">-</strong>편</div>
+  </div>
+</div>
+
+<!-- 메인 -->
+<main class="main">
+  <div class="letters-grid" id="grid"></div>
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <div class="emoji">📭</div>
+    <p>아직 발행된 레터가 없거나 검색 결과가 없습니다.</p>
+  </div>
+</main>
+
+<!-- 푸터 -->
+<footer class="site-footer">
+  <p>© 상상인그룹 인재경영실 &nbsp;·&nbsp;
+    <a href="https://www.sangsangin.com" target="_blank" rel="noopener">sangsangin.com</a>
+  </p>
+</footer>
+
+<script>
+let allLetters = [];
+
+async function loadData() {
+  try {
+    const r = await fetch("letters_archive.json?t=" + Date.now());
+    if (!r.ok) throw new Error("fetch failed");
+    allLetters = await r.json();
+  } catch(e) {
+    allLetters = [];
+  }
+  renderGrid(allLetters);
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + "T00:00:00+09:00");
+  return d.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+}
+
+function renderGrid(letters) {
+  const grid   = document.getElementById("grid");
+  const empty  = document.getElementById("emptyState");
+  document.getElementById("letterCount").textContent = letters.length;
+
+  if (!letters.length) {
+    grid.innerHTML = "";
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+
+  grid.innerHTML = letters.map((l, idx) => `
+    <article class="card">
+      <div class="card-header">
+        <div class="card-no">No.${l.number || (letters.length - idx)}</div>
+        <div class="card-date">${formatDate(l.date)}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${escHtml(l.title)}</div>
+        <div class="card-excerpt">${escHtml(l.excerpt || "")}</div>
+      </div>
+      <div class="card-footer">
+        <button class="btn-read" onclick="expandCard(this, ${idx})">전문 읽기 ↓</button>
+        <button class="btn-collapse" onclick="collapseCard(this, ${idx})">접기 ↑</button>
+      </div>
+      <div class="card-full" id="full-${idx}"></div>
+    </article>
+  `).join("");
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function expandCard(btn, idx) {
+  const full = document.getElementById("full-" + idx);
+  // 콘텐츠 지연 주입 (XSS 안전: 서버 생성 HTML만 사용)
+  if (!full.dataset.loaded) {
+    full.innerHTML = allLetters[idx].html_content || "<p>본문을 불러올 수 없습니다.</p>";
+    full.dataset.loaded = "1";
+  }
+  full.style.display = "block";
+  btn.style.display  = "none";
+  btn.nextElementSibling.style.display = "inline-flex";
+  full.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function collapseCard(btn, idx) {
+  const full = document.getElementById("full-" + idx);
+  full.style.display = "none";
+  btn.style.display  = "none";
+  btn.previousElementSibling.style.display = "inline-flex";
+}
+
+document.getElementById("searchInput").addEventListener("input", function() {
+  const q = this.value.trim().toLowerCase();
+  if (!q) { renderGrid(allLetters); return; }
+  const filtered = allLetters.filter(l =>
+    l.title.toLowerCase().includes(q) ||
+    (l.excerpt || "").toLowerCase().includes(q) ||
+    (l.html_content || "").toLowerCase().includes(q)
+  );
+  renderGrid(filtered);
+});
+
+loadData();
+</script>
+</body>
+</html>
