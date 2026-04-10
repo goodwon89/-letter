@@ -1,0 +1,64 @@
+name: 인재경영실 Letter 발송
+
+# ──────────────────────────────────────────────────────────────
+# 트리거: 수동 실행 전용 (노션 페이지 작성 완료 후 실행)
+# Actions 탭 → "인재경영실 Letter 발송" → Run workflow
+# ──────────────────────────────────────────────────────────────
+on:
+  workflow_dispatch:
+    inputs:
+      notion_page_id:
+        description: |
+          노션 페이지 URL 또는 ID
+          예) https://www.notion.so/workspace/Title-abc123... 또는 abc123def456...
+        required: true
+        type: string
+      send_email:
+        description: '이메일 발송 여부 (false = 아카이브만 업데이트)'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  send-letter:
+    name: 레터 발행
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write   # ← 필수: letters_archive.json & index.html 저장소 업데이트
+
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 의존성 설치
+        run: pip install requests
+
+      - name: 인재경영실 Letter 발송 및 아카이빙
+        env:
+          # ── Notion ──────────────────────────────────────────
+          NOTION_TOKEN:      ${{ secrets.NOTION_TOKEN }}
+          NOTION_PAGE_ID:    ${{ github.event.inputs.notion_page_id }}
+
+          # ── Gmail ───────────────────────────────────────────
+          GMAIL_USER:        ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASS:    ${{ secrets.GMAIL_APP_PASS }}
+          EMAIL_RECIPIENTS:  ${{ secrets.EMAIL_RECIPIENTS }}
+
+          # ── 발송 제어 ────────────────────────────────────────
+          SEND_EMAIL:        ${{ github.event.inputs.send_email }}
+
+          # ── GitHub (자동 제공) ───────────────────────────────
+          GITHUB_TOKEN:      ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_OWNER:      ${{ github.repository_owner }}
+          GITHUB_REPO:       ${{ github.event.repository.name }}
+
+        run: python hr_letter.py
