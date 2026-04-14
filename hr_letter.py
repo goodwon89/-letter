@@ -49,6 +49,12 @@ TEAL            = "#00A7A7"
 DARK_NAVY       = "#1e2235"
 NOTION_API_VER  = "2022-06-28"
 
+# ▼ GitHub Pages 로고 URL (Gmail 호환용)
+# Gmail은 data: URI 이미지를 보안 차단함 → 외부 URL 필수
+# 예시: "https://yourusername.github.io/your-repo/logo.png"
+# GitHub Secret 'LOGO_URL' 또는 아래에 직접 입력
+LOGO_URL = os.environ.get("LOGO_URL", "").strip()
+
 
 # ──────────────────────────────────────────────────────────────
 # Notion 페이지 ID 정규화
@@ -205,8 +211,8 @@ def blocks_to_html(blocks: list):
                      f'margin:26px 0 10px;">{t}</h2>')
         elif bt == "heading_3":
             t = rt_to_html(b["heading_3"].get("rich_text", []))
-            html += (f'<h3 style="font-size:13px;font-weight:700;color:{TEAL};'
-                     f'margin:20px 0 8px;text-transform:uppercase;letter-spacing:0.6px;">{t}</h3>')
+            html += (f'<h3 style="font-size:17px;font-weight:700;color:{TEAL};'
+                     f'margin:24px 0 10px;letter-spacing:-0.2px;line-height:1.5;">{t}</h3>')
 
         # ── bulleted list (연속 항목 묶음) ──
         elif bt == "bulleted_list_item":
@@ -301,8 +307,19 @@ def blocks_to_html(blocks: list):
 def build_email_html(title: str, content_html: str, date_str: str,
                      letter_no: int, archive_url: str) -> str:
 
-    # 로고 셀: 실제 로고 파일이 있으면 <img>, 없으면 텍스트 폴백
-    if LOGO_DATA_URI:
+    # 로고 셀 우선순위:
+    #   1) LOGO_URL (GitHub Pages 외부 URL) → Gmail/Outlook 등 모든 클라이언트 호환
+    #   2) LOGO_DATA_URI (base64)           → Python SMTP 직접 발송 전용 (Gmail API 차단)
+    #   3) 텍스트 폴백
+    if LOGO_URL:
+        logo_cell = (
+            f'<td style="vertical-align:middle;text-align:right;padding-left:20px;">'
+            f'<img src="{LOGO_URL}" alt="상상인그룹" height="40"'
+            f' style="display:block;height:40px;max-width:180px;border:0;">'
+            f'</td>'
+        )
+    elif LOGO_DATA_URI:
+        # ⚠️ Gmail은 data: URI를 차단함 → LOGO_URL 설정 권장
         logo_cell = (
             f'<td style="vertical-align:middle;text-align:right;padding-left:20px;">'
             f'<img src="{LOGO_DATA_URI}" alt="상상인그룹" height="40"'
