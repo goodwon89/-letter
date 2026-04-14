@@ -36,6 +36,36 @@ def normalize_page_id(raw: str) -> str:
     raw = re.sub(r"[^a-fA-F0-9]", "", raw)
     return raw[-32:] if len(raw) >= 32 else raw
 
+# ──────────────────────────────────────────────────────────────
+# 민감정보 자동 마스킹
+# ──────────────────────────────────────────────────────────────
+_SECRET_PATTERNS = [
+    # AWS Access Key ID (영구: AKIA, 임시: ASIA)
+    (re.compile(r'\b(AKIA|ASIA)[0-9A-Z]{16}\b'),          "[AWS_KEY_REDACTED]"),
+    # AWS Secret Access Key (40자 base64)
+    (re.compile(r'(?<![A-Za-z0-9/+])[A-Za-z0-9/+]{40}(?![A-Za-z0-9/+])'), "[AWS_SECRET_REDACTED]"),
+    # GitHub Personal Access Token
+    (re.compile(r'\b(ghp|ghs|gho|ghu|ghr)_[A-Za-z0-9]{36,}\b'), "[GITHUB_TOKEN_REDACTED]"),
+    # Generic API Key 패턴 (api_key=, apikey=, token= 뒤 값)
+    (re.compile(r'(?i)(api[_-]?key|apikey|access[_-]?token|secret[_-]?key)\s*[=:]\s*["\']?([A-Za-z0-9_\-]{20,})["\']?'),
+     r'\1=[REDACTED]'),
+    # Slack Token
+    (re.compile(r'\bxox[baprs]-[0-9A-Za-z\-]{10,}\b'), "[SLACK_TOKEN_REDACTED]"),
+    # Private Key 블록
+    (re.compile(r'-----BEGIN [A-Z ]+PRIVATE KEY-----.*?-----END [A-Z ]+PRIVATE KEY-----', re.DOTALL),
+     "[PRIVATE_KEY_REDACTED]"),
+]
+
+def redact_secrets(text: str) -> str:
+    """텍스트에서 민감정보 패턴을 탐지해 마스킹 후 반환. 변경 시 경고 출력."""
+    for pattern, replacement in _SECRET_PATTERNS:
+        new_text = pattern.sub(replacement, text)
+        if new_text != text:
+            print(f"  ⚠️  민감정보 마스킹 적용: {pattern.pattern[:40]}...")
+            text = new_text
+    return text
+
+
 def esc(s: str) -> str:
     return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
 
@@ -81,7 +111,7 @@ def get_page_title(page_data):
 def rt_to_html(rich_texts):
     out = ""
     for rt in rich_texts:
-        t = esc(rt.get("plain_text",""))
+        t = esc(redact_secrets(rt.get("plain_text","")))
         a = rt.get("annotations",{})
         h = rt.get("href")
         if a.get("bold"):          t = f"<strong>{t}</strong>"
@@ -105,7 +135,7 @@ def blocks_to_html(blocks):
         if bt == "paragraph":
             rts  = b["paragraph"].get("rich_text",[])
             text = rt_to_html(rts)
-            plain = "".join(r.get("plain_text","") for r in rts)
+            plain = redact_secrets("".join(r.get("plain_text","") for r in rts))
             if not excerpt and plain.strip(): excerpt = plain.strip()[:160]
             html += (f'<p style="margin:0 0 16px;line-height:1.8;color:#374151;font-size:15px;">{text}</p>'
                      if text.strip() else '<div style="height:8px;"></div>')
