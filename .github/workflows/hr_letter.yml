@@ -61,4 +61,8 @@ jobs:
           GITHUB_OWNER:      ${{ github.repository_owner }}
           GITHUB_REPO:       ${{ github.event.repository.name }}
 
+          # ── 로고 URL (Gmail 호환용) ─────────────────────────
+          # GitHub Pages에 logo.png가 있으면 자동 설정됨
+          LOGO_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/logo.png
+
         run: python hr_letter.py
