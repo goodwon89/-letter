@@ -21,12 +21,29 @@ from email.mime.text import MIMEText
 import requests
 
 # ──────────────────────────────────────────────────────────────
+# 로고 로드 (logo.png 또는 logo.jpg가 같은 폴더에 있으면 base64 임베드)
+# ──────────────────────────────────────────────────────────────
+def _load_logo_base64() -> tuple:
+    """(data_uri, mime_type) 반환. 파일 없으면 (None, None)"""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    for fname, mime in [("logo.png","image/png"), ("logo.jpg","image/jpeg"),
+                        ("logo.jpeg","image/jpeg"), ("logo.svg","image/svg+xml")]:
+        path = os.path.join(base_dir, fname)
+        if os.path.exists(path):
+            with open(path, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode()
+            return f"data:{mime};base64,{b64}", mime
+    return None, None
+
+LOGO_DATA_URI, LOGO_MIME = _load_logo_base64()
+
+# ──────────────────────────────────────────────────────────────
 # 상수 · 설정
 # ──────────────────────────────────────────────────────────────
 KST             = timezone(timedelta(hours=9))
 ARCHIVE_FILE    = "letters_archive.json"
 INDEX_FILE      = "index.html"
-NEWSLETTER_NAME = "인재경영실 Letter"
+NEWSLETTER_NAME = "인재경영실 Insight Letter"
 ORG_NAME        = "상상인그룹 인재경영실"
 TEAL            = "#00A7A7"
 DARK_NAVY       = "#1e2235"
@@ -254,26 +271,30 @@ def blocks_to_html(blocks: list):
 def build_email_html(title: str, content_html: str, date_str: str,
                      letter_no: int, archive_url: str) -> str:
 
-    # 로고 마크 (이메일 안전 테이블 레이아웃)
-    logo_html = f"""
-<table cellpadding="0" cellspacing="0" role="presentation" style="margin:0 auto 18px;">
+    # 로고: logo.png 파일이 있으면 실제 이미지 사용, 없으면 텍스트 폴백
+    if LOGO_DATA_URI:
+        logo_html = f"""
+<div style="margin:0 auto 16px;text-align:center;">
+  <img src="{LOGO_DATA_URI}" alt="상상인그룹" height="44"
+       style="display:inline-block;height:44px;max-width:200px;">
+</div>"""
+    else:
+        logo_html = f"""
+<table cellpadding="0" cellspacing="0" role="presentation" style="margin:0 auto 16px;">
   <tr>
     <td style="padding-right:10px;vertical-align:middle;">
-      <!-- 로고 심볼 (두 원) -->
-      <table cellpadding="0" cellspacing="0" role="presentation">
-        <tr>
-          <td>
-            <div style="width:20px;height:20px;background:{TEAL};border-radius:50%;"></div>
-          </td>
-          <td style="padding-left:4px;padding-top:10px;">
-            <div style="width:15px;height:15px;background:{TEAL};border-radius:50%;opacity:0.65;"></div>
-          </td>
-        </tr>
-      </table>
+      <div style="position:relative;width:42px;height:38px;display:inline-block;">
+        <div style="position:absolute;top:0;left:0;width:26px;height:26px;
+          background:{TEAL};border-radius:50%;"></div>
+        <div style="position:absolute;bottom:0;right:0;width:19px;height:19px;
+          background:{TEAL};border-radius:50%;opacity:0.75;"></div>
+      </div>
     </td>
-    <td style="vertical-align:middle;">
-      <div style="font-size:11px;color:#94a3b8;font-weight:500;line-height:1.2;">상상인그룹</div>
-      <div style="font-size:16px;font-weight:800;color:#ffffff;line-height:1.2;letter-spacing:-0.2px;">인재경영실</div>
+    <td style="vertical-align:middle;text-align:left;">
+      <div style="font-size:13px;font-weight:800;color:#ffffff;
+        letter-spacing:-0.2px;line-height:1.15;">상상인그룹</div>
+      <div style="font-size:11px;color:#94a3b8;font-weight:400;
+        letter-spacing:0.3px;margin-top:2px;">인재경영실</div>
     </td>
   </tr>
 </table>"""
@@ -293,28 +314,22 @@ def build_email_html(title: str, content_html: str, date_str: str,
 
   <!-- ① 헤더 (다크 네이비 + 티얼 포인트) -->
   <div style="background:{DARK_NAVY};border-radius:16px 16px 0 0;
-    padding:32px 36px 28px;text-align:center;position:relative;overflow:hidden;">
-
-    <!-- 배경 장식 원 -->
-    <div style="position:absolute;top:-50px;right:-50px;width:160px;height:160px;
-      background:{TEAL};border-radius:50%;opacity:0.09;"></div>
-    <div style="position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;
-      background:{TEAL};border-radius:50%;opacity:0.07;"></div>
+    padding:28px 36px 24px;text-align:center;">
 
     {logo_html}
 
     <!-- 구분선 -->
-    <div style="width:44px;height:2px;background:{TEAL};margin:0 auto 18px;"></div>
+    <div style="width:44px;height:2px;background:{TEAL};margin:0 auto 16px;"></div>
 
     <!-- 뉴스레터명 -->
-    <div style="font-size:24px;font-weight:800;color:#ffffff;
+    <div style="font-size:22px;font-weight:800;color:#ffffff;
       letter-spacing:-0.4px;margin-bottom:8px;">
       {NEWSLETTER_NAME}
     </div>
 
-    <!-- 날짜 · 호수 -->
+    <!-- 날짜 -->
     <div style="font-size:13px;color:#94a3b8;">
-      {date_str} &nbsp;·&nbsp; <strong style="color:{TEAL};">No.{letter_no}</strong>
+      {date_str}
     </div>
   </div>
 
@@ -341,14 +356,14 @@ def build_email_html(title: str, content_html: str, date_str: str,
     <div style="margin-bottom:10px;">
       <a href="{archive_url}" target="_blank" rel="noopener"
         style="color:{TEAL};text-decoration:none;font-size:13px;font-weight:600;">
-        📂 인재경영실 Letter 아카이브
+        📂 인재경영실 Insight Letter 아카이브
       </a>
       &nbsp;&nbsp;|&nbsp;&nbsp;
       <span style="color:#94a3b8;font-size:13px;">상상인그룹 인재경영실</span>
     </div>
 
     <div style="font-size:12px;color:#cbd5e1;margin-top:4px;">
-      이 메일은 인재경영실 Letter 구독자에게 발송됩니다.
+      이 메일은 인재경영실 Insight Letter 구독자에게 발송됩니다.
     </div>
   </div>
 
@@ -767,7 +782,7 @@ def main():
     if do_send_email:
         print("\n[3] 이메일 발송 중...")
         if recipients:
-            subject   = f"[인재경영실 Letter] No.{letter_no} — {title}"
+            subject   = f"[인재경영실 Insight Letter] {title}"
             html_body = build_email_html(title, content_html, date_str,
                                          letter_no, archive_url)
             try:
