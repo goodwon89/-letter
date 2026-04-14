@@ -392,6 +392,7 @@ def build_email_html(title: str, content_html: str, date_str: str,
     {content_html}
     <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 20px;">
     <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
+      — 인재경영실 드림
     </p>
   </div>
 
@@ -420,10 +421,12 @@ def build_email_html(title: str, content_html: str, date_str: str,
 
 
 # ──────────────────────────────────────────────────────────────
-# GitHub Pages HTML 생성 (누적 아카이브, 날짜 구분 없음)
+# [삭제됨] build_index_html() — index.html은 정적 파일로 관리
+# GitHub Actions는 letters_archive.json만 업데이트하고
+# index.html은 덮어쓰지 않음 (디자인 변경 시 직접 업로드)
 # ──────────────────────────────────────────────────────────────
 
-def build_index_html() -> str:
+def _DELETED_build_index_html() -> str:  # ← 사용 안 함 (삭제 표시)
     return """<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -861,14 +864,8 @@ def main():
         gh_owner, gh_repo, gh_token,
     )
 
-    # 5. GitHub Pages 업데이트
-    print("\n[5] GitHub Pages 업데이트 중...")
-    push_file(
-        build_index_html(),
-        INDEX_FILE,
-        f"pages: update archive for letter No.{letter_no}",
-        gh_owner, gh_repo, gh_token,
-    )
+    # 5. GitHub Pages index.html은 정적 파일로 유지 — 덮어쓰지 않음
+    # (디자인 변경이 필요할 때만 index.html을 저장소에 직접 업로드)
 
     print(f"\n✅ 완료! No.{letter_no} '{title}' 발행 완료")
     print(f"   아카이브 URL: {archive_url}")
