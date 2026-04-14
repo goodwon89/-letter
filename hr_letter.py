@@ -311,24 +311,29 @@ def build_email_html(title: str, content_html: str, date_str: str,
     #   1) LOGO_URL (GitHub Pages 외부 URL) → Gmail/Outlook 등 모든 클라이언트 호환
     #   2) LOGO_DATA_URI (base64)           → Python SMTP 직접 발송 전용 (Gmail API 차단)
     #   3) 텍스트 폴백
+    # width:1%;white-space:nowrap → 로고 셀이 내용 최소폭만 차지, 남은 공간은 좌측 텍스트로
+    _logo_td_style = (
+        "width:1%;white-space:nowrap;"
+        "vertical-align:middle;text-align:right;padding-left:24px;"
+    )
     if LOGO_URL:
         logo_cell = (
-            f'<td style="vertical-align:middle;text-align:right;padding-left:20px;">'
+            f'<td style="{_logo_td_style}">'
             f'<img src="{LOGO_URL}" alt="상상인그룹" height="40"'
-            f' style="display:block;height:40px;max-width:180px;border:0;">'
+            f' style="display:block;height:40px;max-width:160px;border:0;">'
             f'</td>'
         )
     elif LOGO_DATA_URI:
         # ⚠️ Gmail은 data: URI를 차단함 → LOGO_URL 설정 권장
         logo_cell = (
-            f'<td style="vertical-align:middle;text-align:right;padding-left:20px;">'
+            f'<td style="{_logo_td_style}">'
             f'<img src="{LOGO_DATA_URI}" alt="상상인그룹" height="40"'
-            f' style="display:block;height:40px;max-width:180px;border:0;">'
+            f' style="display:block;height:40px;max-width:160px;border:0;">'
             f'</td>'
         )
     else:
         logo_cell = (
-            f'<td style="vertical-align:middle;text-align:right;padding-left:20px;">'
+            f'<td style="{_logo_td_style}">'
             f'<span style="font-size:15px;font-weight:800;color:{DARK_NAVY};">상상인그룹</span>'
             f'</td>'
         )

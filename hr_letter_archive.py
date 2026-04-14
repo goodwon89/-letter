@@ -289,8 +289,8 @@ def build_index_html(logo_data_uri: str = "") -> str:
     .count-badge strong{{color:#00A7A7;font-weight:700}}
 
     /* 메인 그리드 */
-    .main{{max-width:960px;margin:0 auto;padding:28px 28px}}
-    .letters-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:20px}}
+    .main{{max-width:720px;margin:0 auto;padding:28px 28px}}
+    .letters-grid{{display:grid;grid-template-columns:1fr;gap:20px}}
 
     /* 카드 */
     .card{{background:#fff;border-radius:14px;border:1px solid #e2e8f0;overflow:hidden;
@@ -490,7 +490,8 @@ def main():
     content_html, exc = blocks_to_html(blocks)
     print(f"  제목: {title}  |  블록 {len(blocks)}개")
 
-    # 3. 아카이브 업데이트
+    # 3. 아카이브 업데이트 (letters_archive.json 만 업데이트)
+    # ⚠️  index.html은 덮어쓰지 않음 — 디자인 변경 시 index.html을 저장소에 직접 업로드할 것
     archive.insert(0, {
         "id":             str(uuid.uuid4()),
         "number":         letter_no,
@@ -504,11 +505,8 @@ def main():
               ARCHIVE_FILE, f"letter: No.{letter_no} — {title}",
               gh_owner, gh_repo, gh_token)
 
-    # 4. Pages 업데이트
-    push_file(build_index_html(_read_logo_b64()), INDEX_FILE,
-              f"pages: letter No.{letter_no}", gh_owner, gh_repo, gh_token)
-
     print(f"\n✅ No.{letter_no} '{title}' 아카이브 완료")
+    print("📌 index.html은 유지됩니다. 디자인 변경 시 저장소에 직접 업로드하세요.")
 
 
 if __name__ == "__main__":
