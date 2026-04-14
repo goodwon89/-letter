@@ -220,9 +220,10 @@ def build_index_html(logo_data_uri: str = "") -> str:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>인재경영실 Insight Letter — 아카이브</title>
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
   <style>
     *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-    body{{font-family:'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
+    body{{font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
          background:#f4f5f7;color:#1e2235;min-height:100vh}}
 
     /* ── 헤더 (흰 배경, 모닝브리핑 스타일) ── */

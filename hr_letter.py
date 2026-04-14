@@ -271,33 +271,20 @@ def blocks_to_html(blocks: list):
 def build_email_html(title: str, content_html: str, date_str: str,
                      letter_no: int, archive_url: str) -> str:
 
-    # 로고: logo.png 파일이 있으면 실제 이미지 사용, 없으면 텍스트 폴백
+    # 로고 셀: 실제 로고 파일이 있으면 <img>, 없으면 텍스트 폴백
     if LOGO_DATA_URI:
-        logo_html = f"""
-<div style="margin:0 auto 16px;text-align:center;">
-  <img src="{LOGO_DATA_URI}" alt="상상인그룹" height="44"
-       style="display:inline-block;height:44px;max-width:200px;">
-</div>"""
+        logo_cell = (
+            f'<td style="vertical-align:middle;text-align:right;padding-left:20px;">'
+            f'<img src="{LOGO_DATA_URI}" alt="상상인그룹" height="40"'
+            f' style="display:block;height:40px;max-width:180px;border:0;">'
+            f'</td>'
+        )
     else:
-        logo_html = f"""
-<table cellpadding="0" cellspacing="0" role="presentation" style="margin:0 auto 16px;">
-  <tr>
-    <td style="padding-right:10px;vertical-align:middle;">
-      <div style="position:relative;width:42px;height:38px;display:inline-block;">
-        <div style="position:absolute;top:0;left:0;width:26px;height:26px;
-          background:{TEAL};border-radius:50%;"></div>
-        <div style="position:absolute;bottom:0;right:0;width:19px;height:19px;
-          background:{TEAL};border-radius:50%;opacity:0.75;"></div>
-      </div>
-    </td>
-    <td style="vertical-align:middle;text-align:left;">
-      <div style="font-size:13px;font-weight:800;color:#ffffff;
-        letter-spacing:-0.2px;line-height:1.15;">상상인그룹</div>
-      <div style="font-size:11px;color:#94a3b8;font-weight:400;
-        letter-spacing:0.3px;margin-top:2px;">인재경영실</div>
-    </td>
-  </tr>
-</table>"""
+        logo_cell = (
+            f'<td style="vertical-align:middle;text-align:right;padding-left:20px;">'
+            f'<span style="font-size:15px;font-weight:800;color:{DARK_NAVY};">상상인그룹</span>'
+            f'</td>'
+        )
 
     return f"""<!DOCTYPE html>
 <html lang="ko">
@@ -305,45 +292,56 @@ def build_email_html(title: str, content_html: str, date_str: str,
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>{NEWSLETTER_NAME} — {esc(title)}</title>
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 </head>
 <body style="margin:0;padding:0;background:#f0f2f5;
-  font-family:'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',
+  font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',
   'Apple Color Emoji',sans-serif;">
 
 <div style="max-width:660px;margin:0 auto;padding:32px 16px 48px;">
 
-  <!-- ① 헤더 (다크 네이비 + 티얼 포인트) -->
-  <div style="background:{DARK_NAVY};border-radius:16px 16px 0 0;
-    padding:28px 36px 24px;text-align:center;">
-
-    {logo_html}
-
-    <!-- 구분선 -->
-    <div style="width:44px;height:2px;background:{TEAL};margin:0 auto 16px;"></div>
-
-    <!-- 뉴스레터명 -->
-    <div style="font-size:22px;font-weight:800;color:#ffffff;
-      letter-spacing:-0.4px;margin-bottom:8px;">
-      {NEWSLETTER_NAME}
-    </div>
-
-    <!-- 날짜 -->
-    <div style="font-size:13px;color:#94a3b8;">
-      {date_str}
-    </div>
-  </div>
+  <!-- ① 헤더 (흰 배경, 좌: 타이틀+날짜 / 우: 로고) -->
+  <table width="100%" cellpadding="0" cellspacing="0"
+         style="background:#ffffff;border-radius:16px 16px 0 0;border-bottom:3px solid {TEAL};">
+    <tr>
+      <td style="padding:24px 32px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <!-- 좌: 뉴스레터명 + 날짜 -->
+            <td style="vertical-align:middle;">
+              <div style="font-size:11px;font-weight:600;color:{TEAL};
+                letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;">
+                {ORG_NAME}
+              </div>
+              <div style="font-size:22px;font-weight:800;color:{DARK_NAVY};
+                letter-spacing:-0.5px;line-height:1.2;margin-bottom:6px;">
+                {NEWSLETTER_NAME}
+              </div>
+              <div style="font-size:13px;color:#94a3b8;">{date_str}</div>
+            </td>
+            <!-- 우: 로고 -->
+            {logo_cell}
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 
   <!-- ② 제목 배너 (티얼) -->
-  <div style="background:{TEAL};padding:18px 36px;">
-    <div style="font-size:18px;font-weight:700;color:#ffffff;
-      line-height:1.45;letter-spacing:-0.2px;">
+  <div style="background:{TEAL};padding:18px 32px;">
+    <div style="font-size:17px;font-weight:700;color:#ffffff;
+      line-height:1.5;letter-spacing:-0.2px;">
       {esc(title)}
     </div>
   </div>
 
   <!-- ③ 본문 -->
-  <div style="background:#ffffff;padding:36px 36px 32px;">
+  <div style="background:#ffffff;padding:36px 32px 32px;">
     {content_html}
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 20px;">
+    <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
+      — 인재경영실 드림
+    </p>
   </div>
 
   <!-- ④ 그라디언트 바 -->
@@ -351,8 +349,7 @@ def build_email_html(title: str, content_html: str, date_str: str,
 
   <!-- ⑤ 푸터 -->
   <div style="background:#f8fafc;border:1px solid #e2e8f0;border-top:none;
-    border-radius:0 0 16px 16px;padding:20px 36px;text-align:center;">
-
+    border-radius:0 0 16px 16px;padding:20px 32px;text-align:center;">
     <div style="margin-bottom:10px;">
       <a href="{archive_url}" target="_blank" rel="noopener"
         style="color:{TEAL};text-decoration:none;font-size:13px;font-weight:600;">
@@ -361,7 +358,6 @@ def build_email_html(title: str, content_html: str, date_str: str,
       &nbsp;&nbsp;|&nbsp;&nbsp;
       <span style="color:#94a3b8;font-size:13px;">상상인그룹 인재경영실</span>
     </div>
-
     <div style="font-size:12px;color:#cbd5e1;margin-top:4px;">
       이 메일은 인재경영실 Insight Letter 구독자에게 발송됩니다.
     </div>
