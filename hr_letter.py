@@ -174,12 +174,28 @@ def rt_to_html(rich_texts: list) -> str:
         out += t
     return out
 
+def _build_excerpt(parts: list, max_len: int = 200) -> str:
+    """수집된 텍스트 조각으로 발췌문 생성 (의미 있는 1~2문장)"""
+    result = ""
+    for p in parts:
+        p = p.strip()
+        if not p:
+            continue
+        if len(result) >= max_len:
+            break
+        result = (result + " … " + p) if result else p
+    if len(result) > max_len:
+        result = result[:max_len].rsplit(" ", 1)[0] + "…"
+    return result
+
+
 def blocks_to_html(blocks: list):
     """
     Notion 블록 목록 → (이메일용 HTML 문자열, 발췌 문자열)
     이메일 클라이언트 호환을 위해 table·인라인 스타일 사용
     """
-    html, excerpt = "", ""
+    html = ""
+    excerpt_parts: list = []   # 발췌 후보 텍스트 조각 (최대 2개)
     i = 0
 
     while i < len(blocks):
@@ -190,9 +206,10 @@ def blocks_to_html(blocks: list):
         if bt == "paragraph":
             rts   = b["paragraph"].get("rich_text", [])
             text  = rt_to_html(rts)
-            plain = redact_secrets("".join(r.get("plain_text", "") for r in rts))
-            if not excerpt and plain.strip():
-                excerpt = plain.strip()[:160]
+            plain = redact_secrets("".join(r.get("plain_text", "") for r in rts)).strip()
+            # 발췌: 20자 이상 의미있는 단락만, 최대 2개 수집
+            if plain and len(plain) >= 20 and len(excerpt_parts) < 2:
+                excerpt_parts.append(plain)
             if text.strip():
                 html += (f'<p style="margin:0 0 16px;line-height:1.8;'
                          f'color:#374151;font-size:15px;">{text}</p>')
@@ -217,21 +234,33 @@ def blocks_to_html(blocks: list):
         # ── bulleted list (연속 항목 묶음) ──
         elif bt == "bulleted_list_item":
             items = ""
+            first_plain = ""
             while i < len(blocks) and blocks[i].get("type") == "bulleted_list_item":
-                t = rt_to_html(blocks[i]["bulleted_list_item"].get("rich_text", []))
+                rts_li = blocks[i]["bulleted_list_item"].get("rich_text", [])
+                t = rt_to_html(rts_li)
                 items += f'<li style="margin-bottom:8px;line-height:1.7;color:#374151;">{t}</li>'
+                if not first_plain:
+                    first_plain = redact_secrets("".join(r.get("plain_text","") for r in rts_li)).strip()
                 i += 1
             html += f'<ul style="margin:0 0 16px;padding-left:22px;">{items}</ul>'
+            if first_plain and len(first_plain) >= 20 and len(excerpt_parts) < 2:
+                excerpt_parts.append(first_plain)
             continue
 
         # ── numbered list (연속 항목 묶음) ──
         elif bt == "numbered_list_item":
             items = ""
+            first_plain = ""
             while i < len(blocks) and blocks[i].get("type") == "numbered_list_item":
-                t = rt_to_html(blocks[i]["numbered_list_item"].get("rich_text", []))
+                rts_li = blocks[i]["numbered_list_item"].get("rich_text", [])
+                t = rt_to_html(rts_li)
                 items += f'<li style="margin-bottom:8px;line-height:1.7;color:#374151;">{t}</li>'
+                if not first_plain:
+                    first_plain = redact_secrets("".join(r.get("plain_text","") for r in rts_li)).strip()
                 i += 1
             html += f'<ol style="margin:0 0 16px;padding-left:22px;">{items}</ol>'
+            if first_plain and len(first_plain) >= 20 and len(excerpt_parts) < 2:
+                excerpt_parts.append(first_plain)
             continue
 
         # ── divider ──
@@ -297,6 +326,7 @@ def blocks_to_html(blocks: list):
 
         i += 1
 
+    excerpt = _build_excerpt(excerpt_parts, max_len=200)
     return html, excerpt
 
 
